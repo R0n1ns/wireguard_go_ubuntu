@@ -1,4 +1,4 @@
-###WireGuard Management Utility Documentation
+<h1>WireGuard Management Utility Documentation</h1>
 This project is a utility for managing WireGuard server and client configurations programmatically. It provides various functionalities such as adding, activating, stopping, and deleting clients. The configuration data for WireGuard is manipulated through Go, and it interacts with the underlying system via the command line.
 
 ###Features
