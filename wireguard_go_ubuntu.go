@@ -19,73 +19,78 @@ import (
 )
 
 // Структура для конфигурации пира
+// Структура для конфигурации пира
 type PeerConfig struct {
-	PublicKey  string
-	AllowedIPs string
-	Endpoint   string
+	PublicKey  string `json:"public_key"`
+	AllowedIPs string `json:"allowed_ips"`
+	Endpoint   string `json:"endpoint"`
 }
 
 // Структура для клиента
 type Client struct {
-	Id               int
-	Status           bool
-	AddressClient    string
-	PubkeyPath       string
-	PrivkeyPath      string
-	PrivateClientKey string
-	PublicClientKey  string
-	Peer             PeerConfig
-	PeerStr          string
-	Config           string
-	TgId             int
+	Id               int        `json:"id"`
+	Status           bool       `json:"status"`
+	AddressClient    string     `json:"address_client"`
+	PubkeyPath       string     `json:"pubkey_path"`
+	PrivkeyPath      string     `json:"privkey_path"`
+	PrivateClientKey string     `json:"private_client_key"`
+	PublicClientKey  string     `json:"public_client_key"`
+	Peer             PeerConfig `json:"peer"`
+	PeerStr          string     `json:"peer_str"`
+	Config           string     `json:"config"`
+	TgId             int        `json:"tg_id"`
 }
 
 // Управление сервером WireGuard
 type WireGuardConfig struct {
-	PrivateKey string
-	PublicKey  string
-	Endpoint   string
-	ListenPort string
-	InterName  string
-	BotToken   string
-	Clients    map[int]Client // Используем указатели на клиентов
+	PrivateKey string         `json:"private_key"`
+	PublicKey  string         `json:"public_key"`
+	Endpoint   string         `json:"endpoint"`
+	ListenPort string         `json:"listen_port"`
+	InterName  string         `json:"inter_name"`
+	BotToken   string         `json:"bot_token"`
+	Clients    map[int]Client `json:"clients"` // Используем карту клиентов
 }
 
 // ------------------------ сохранение и загрузка данных ------------------------
-// SaveToFile сохраняет конфигурацию WireGuardConfig в JSON файл
-func (wg *WireGuardConfig) SaveToFile(filename string) error {
-	// Открытие файла для записи
-	file, err := os.Create(filename)
+// Метод сохранения WireGuardConfig в JSON файл
+func (config *WireGuardConfig) SaveToFile(filename string) error {
+	// Преобразуем конфигурацию в JSON
+	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-
-	// Преобразование структуры WireGuardConfig в JSON
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ") // Для форматированного вывода
-	if err := encoder.Encode(wg); err != nil {
+	// Записываем данные в файл
+	err = ioutil.WriteFile(filename, data, 0644)
+	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
-// LoadFromFile загружает конфигурацию WireGuardConfig из JSON файла
-func (wg *WireGuardConfig) LoadFromFile(filename string) error {
-	// Открытие файла для чтения
-	file, err := os.Open(filename)
+// Метод загрузки WireGuardConfig из JSON файла
+func (config *WireGuardConfig) LoadFromFile(filename string) error {
+	// Проверяем, существует ли файл
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		// Файл не существует, ничего не делаем
+		return nil
+	}
 	if err != nil {
 		return err
 	}
-	defer file.Close()
 
-	// Декодирование JSON в структуру WireGuardConfig
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(wg); err != nil {
+	// Читаем данные из файла
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
 		return err
 	}
 
+	// Раскодируем JSON данные в структуру config
+	err = json.Unmarshal(data, config)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -287,7 +292,7 @@ func (wg *WireGuardConfig) GenServerKeys() {
 
 // генерация рандомного порта
 func (wg *WireGuardConfig) RandomPort() {
-	wg.ListenPort = strconv.Itoa(rand.Intn(100000))
+	wg.ListenPort = strconv.Itoa(rand.Intn(10000))
 	//fmt.Println(wg.ListenPort)
 }
 
@@ -439,6 +444,16 @@ func restWireguard() {
 
 // Отправка конфигурации через Telegram
 func (wg *WireGuardConfig) SendConfigToUserTg(user_id int) {
+	if wg.BotToken == "" {
+		var value string
+		fmt.Print("Пожалуйста введите токен бота,или 0 для отмены")
+		fmt.Scanln(&value)
+		if value != "0" {
+			wg.BotToken = value
+		} else {
+			return
+		}
+	}
 	//создание бота
 	Cl, _ := wg.Clients[user_id]
 
