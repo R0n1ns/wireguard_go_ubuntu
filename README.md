@@ -55,6 +55,9 @@
        <li><strong>GetIPAndInterfaceName() error:</strong> Retrieves the server's IP address and network interface name.</li>
        <li><strong>GenerateWireGuardConfig():</strong> Generates the WireGuard configuration file for the server.</li>
        <li><strong>WireguardStart():</strong> Starts the WireGuard service and enables port forwarding and UFW rules.</li>
+       <li><strong>SaveToFile():</strong> Saving wireguard configuration data.</li>
+       <li><strong>LoadFromFile():</strong> Loading wireguard configuration data.</li>
+
    </ul>
 
    <h2>Utility Functions</h2>
