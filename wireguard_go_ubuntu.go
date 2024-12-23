@@ -189,7 +189,7 @@ func (clients *WireGuardConfig) AllClients() string {
 }
 
 // Добавление клиента WireGuard
-func (wg *WireGuardConfig) AddWireguardClient(clientID int) (Client, int) {
+func (wg *WireGuardConfig) AddWireguardClient(clientID int) (Client, int, error) {
 	// Инициализация карты клиентов, если она nil
 	if wg.Clients == nil {
 		wg.Clients = make(map[int]Client)
@@ -223,11 +223,12 @@ func (wg *WireGuardConfig) AddWireguardClient(clientID int) (Client, int) {
 	filePath := "/etc/wireguard/wg0.conf"
 	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		panic(err)
+		return Client{}, 0, err
 	}
 	defer f.Close()
 	if _, err = f.WriteString(peer); err != nil {
-		panic(err)
+		return Client{}, 0, err
+
 	}
 	client.Status = true
 	// Генерация и сохранение конфигурации клиента
@@ -243,7 +244,7 @@ AllowedIPs = 0.0.0.0/0
     `, client.AddressClient, client.PrivateClientKey, wg.Endpoint, wg.PublicKey)
 
 	client.Config = clientConfig
-	return client, clientID
+	return client, clientID, nil
 }
 
 // ------------------------ методы для сервера ------------------------
